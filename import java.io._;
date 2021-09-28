@@ -1,0 +1,159 @@
+import java.io.*;
+import java.util.*;
+import java.text.*;
+import java.math.*;
+import java.util.regex.*;
+// Uncomment below classes to send network request if needed.
+// import java.net.HttpURLConnection;
+// import java.net.URL;
+
+class Main {
+    public static void main(String args[] ) throws Exception {
+        String inputData = "";
+        String thisLine = null;
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        while ((thisLine = br.readLine()) != null) {
+            inputData += thisLine + "\n";
+        }
+        // Output the solution to the console
+        codeHere(inputData);
+    }
+
+    public static void codeHere(String inputData) {
+        // Use this function to write your solution;
+        //process input data 
+        Set<Map<String, List<Integer>>>  inputSet = processInputHelper(inputData); 
+        if (inputSet.size() == 0){
+            System.out.println("Could not process input data");
+            return;
+        }  
+         //create an aggregate object to handle all aggregations, get aggretated map and print to console
+        AggregateMap aggMap = new AggregateMap(inputSet); 
+        Map<String, List<Integer>>  combinedMap = aggMap.aggregatedMp; 
+        aggMap.printAggregate(combinedMap);
+       
+        return;
+    }
+    
+    /*
+     function gets input data from stdin as a string and parses the string to create required maps
+     catches input data formatting errors 
+     returns a set of created maps 
+     */
+    public static Set<Map<String, List<Integer>>> processInputHelper(String inputData){
+       
+        Set<Map<String, List<Integer>>> setOfMaps = new HashSet<>();
+        try {
+            String[] inputArr = inputData.split("\n");
+            int numOfMaps = Integer.parseInt(inputArr[0]); 
+
+            int indx = 1;
+            int line = indx;
+             while (indx <= numOfMaps){
+                line+=1;
+                String [] capacityArr = inputArr[line].split(" ");
+                int i = line + 1; 
+                int mapCapacity = Integer.parseInt(capacityArr[0]);
+                int listsCapacity = Integer.parseInt(capacityArr[1]);
+
+                Map<String, List<Integer>> newMap = new HashMap<>(mapCapacity);
+                while (i <= mapCapacity+line){
+                   
+                    String[] keyvalueArray = inputArr[i].split(" ");
+                    String newkey = keyvalueArray[0];
+                 
+                    List<Integer> newList = new ArrayList<>(listsCapacity);
+                    for (int j = 1; j < keyvalueArray.length; j++) {
+                        int newNum = Integer.parseInt(keyvalueArray[j]);
+                        newList.add(newNum);
+                    }
+                    newMap.put(newkey, newList);
+                    i++;
+                }
+                setOfMaps.add(newMap);
+                line = i; 
+                indx++;
+            }
+            
+        } catch (NumberFormatException exception ){
+            System.out.println("Input data not correctly formatted."); 
+
+        } catch (IllegalArgumentException exception){
+            System.out.println("Input data not correctly formatted.");
+        } 
+        return setOfMaps;
+    }
+}
+
+/*
+class handles all aggregation methods on a set of maps 
+*/
+class AggregateMap {
+    Set<String> repeatedKeys; 
+    Set<Map<String, List<Integer>>> setOfMaps; 
+    Map<String, List<Integer>> aggregatedMp; 
+
+    public AggregateMap(Set<Map<String, List<Integer>>> set){
+        this.repeatedKeys = new HashSet<>(); 
+        this.setOfMaps = set;
+        aggregatedMp = aggregateMaps(set); 
+    }
+
+    public void printAggregate(Map<String, List<Integer>> aggregatedMap ){
+        if (repeatedKeys.size()== 0)System.out.println("none");
+        else {
+            for (String keyStr: repeatedKeys){
+                    List<Integer> currList = aggregatedMap.get(keyStr); 
+
+                    int sum = 0;
+                    for (int num: currList){
+                            sum +=num; 
+                    }
+                    //output result format
+                    System.out.println(keyStr + " "+ sum); 
+            }
+        }
+    }
+
+    /*
+     * function takes a set of maps and returns a map with keys in more than one
+     * map, aggregated to one value list
+     */
+    public Map<String, List<Integer>> aggregateMaps(Set<Map<String, List<Integer>>> mapsSet){
+        Map<String, List<Integer>> aggMap = new HashMap<>();
+        for (Map<String, List<Integer>> map : mapsSet) {
+            for (String mapkey : map.keySet()) {
+                List<Integer> keyval;
+                List<Integer> aggListVal = aggMap.getOrDefault(mapkey, null);
+                if (aggListVal != null) {
+                    repeatedKeys.add(mapkey);  //add keys in more than one map to set
+                    keyval = aggregateLists(aggListVal, map.get(mapkey));
+                } else {
+                    keyval = map.get(mapkey);
+                }
+                aggMap.put(mapkey, keyval);
+            }
+        }
+        return aggMap;
+    }
+
+    /*
+     * function takes two lists and combines them
+     */
+    public List<Integer> aggregateLists(List<Integer> list1, List<Integer> list2){
+        List<Integer> combinedList = new ArrayList<>();
+        for (int num : list1) {
+            combinedList.add(num);
+        }
+        for (int num : list2) {
+            combinedList.add(num);
+        }
+
+        return combinedList;
+    }
+
+}
+
+    
+    
+
